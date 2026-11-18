@@ -1,0 +1,23 @@
+# Dataset originali e intermedi (rigenerabili)
+/CVE2Patch/data/
+/data/
+
+# Output: conserva soltanto il pool iniziale e il riepilogo della run
+/CVE2Patch/output/*
+!/CVE2Patch/output/initial_pool.csv
+!/CVE2Patch/output/run_summary.json
+/output/*
+!/output/initial_pool.csv
+!/output/run_summary.json
+
+# Jupyter / Python / ambiente locale
+.ipynb_checkpoints/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.env.*
+*.part
+.DS_Store
+Thumbs.db
