@@ -1,0 +1,239 @@
+{
+  "method_version": "4.0",
+  "code_revision": "4.1-refactor",
+  "run_utc": "2026-11-18T11:15:32.218625+00:00",
+  "score_max_theoretical": 100,
+  "min_score": 60,
+  "ranking_tiebreak": [
+    "local_priority desc",
+    "cve_id asc"
+  ],
+  "literature": [
+    "10.1145/3475960.3475985",
+    "10.1016/j.jss.2023.111679",
+    "10.1093/cybsec/tyaa015",
+    "https://www.usenix.org/conference/usenixsecurity18/presentation/mu",
+    "arXiv:2509.01835v2"
+  ],
+  "start_date": "2019-01-01",
+  "end_date": "2026-11-17",
+  "attack_vectors": [
+    "NETWORK",
+    "LOCAL"
+  ],
+  "kernel_separate": true,
+  "weights": {
+    "vulhub": 30,
+    "msf_min": 30,
+    "msf_max": 40,
+    "edb_verified": 30,
+    "edb_unverified": 25,
+    "poc_primary": 20,
+    "edb_bonus": 5,
+    "poc_bonus": 5,
+    "falco": 20
+  },
+  "poc_indexes": {
+    "nomi-sec": {
+      "url": "https://codeload.github.com/nomi-sec/PoC-in-GitHub/zip/refs/heads/master",
+      "status": "consulted",
+      "matched_files": 8884,
+      "parsed_files": 8884,
+      "poc_sections": null
+    },
+    "trickest": {
+      "url": "https://codeload.github.com/trickest/cve/zip/refs/heads/main",
+      "status": "consulted",
+      "matched_files": 117902,
+      "parsed_files": 117902,
+      "poc_sections": 117902
+    }
+  },
+  "counts": {
+    "nvd_unique": 299490,
+    "valid_in_period": 289125,
+    "linux_nvd_before_av": 11026,
+    "kernel": 19482,
+    "av_non_kernel": 260105,
+    "nvd_linux": 10835,
+    "recovered": 603,
+    "pending": 231319,
+    "conflicts": 1,
+    "enriched": 11438,
+    "positive_score": 998,
+    "pool": 91,
+    "pool_network": 86,
+    "pool_local": 5,
+    "pool_external_provisional": 69
+  },
+  "coverage": {
+    "candidate": {
+      "has_vulhub": 176,
+      "msf_compatible": 544,
+      "edb_compatible": 288,
+      "has_poc_reference": 578,
+      "falco_syscall": 4
+    },
+    "pool": {
+      "has_vulhub": 89,
+      "msf_compatible": 73,
+      "edb_compatible": 55,
+      "has_poc_reference": 83,
+      "falco_syscall": 4
+    }
+  },
+  "thresholds": [
+    {
+      "threshold": 0,
+      "total": 11438,
+      "network": 8708,
+      "local": 2730
+    },
+    {
+      "threshold": 20,
+      "total": 998,
+      "network": 873,
+      "local": 125
+    },
+    {
+      "threshold": 30,
+      "total": 714,
+      "network": 657,
+      "local": 57
+    },
+    {
+      "threshold": 40,
+      "total": 569,
+      "network": 533,
+      "local": 36
+    },
+    {
+      "threshold": 50,
+      "total": 190,
+      "network": 180,
+      "local": 10
+    },
+    {
+      "threshold": 60,
+      "total": 91,
+      "network": 86,
+      "local": 5
+    },
+    {
+      "threshold": 70,
+      "total": 69,
+      "network": 66,
+      "local": 3
+    },
+    {
+      "threshold": 80,
+      "total": 29,
+      "network": 28,
+      "local": 1
+    },
+    {
+      "threshold": 90,
+      "total": 2,
+      "network": 1,
+      "local": 1
+    },
+    {
+      "threshold": 100,
+      "total": 2,
+      "network": 1,
+      "local": 1
+    }
+  ],
+  "inputs": [
+    {
+      "file": "data/raw/nvd_feeds/nvdcve-2.0-2019.json.gz",
+      "bytes": 10200401,
+      "sha256": "5d551a6fa177b1d4c4473723cc7988a4e8ffab3ec834d0dcd9c629ce70d7bc0c"
+    },
+    {
+      "file": "data/raw/nvd_feeds/nvdcve-2.0-2020.json.gz",
+      "bytes": 14017157,
+      "sha256": "109c7d293ffe4721b41b19ede23c6990eb56b09379d5ffd5397d3f1150cd825b"
+    },
+    {
+      "file": "data/raw/nvd_feeds/nvdcve-2.0-2021.json.gz",
+      "bytes": 16869886,
+      "sha256": "052b9fb28efec1069746d9d0a35a690c4aaa86eb09e67328fec050a976c2b459"
+    },
+    {
+      "file": "data/raw/nvd_feeds/nvdcve-2.0-2022.json.gz",
+      "bytes": 18462461,
+      "sha256": "ad2465238edf74da6f23bd59e73617aa1ad30443c8a56ec3bda61e40ec2c06f0"
+    },
+    {
+      "file": "data/raw/nvd_feeds/nvdcve-2.0-2023.json.gz",
+      "bytes": 20327481,
+      "sha256": "e259d4a3b3751c7ad49b8152dd285b5ee3f78a50c03885b858cd48f901af5476"
+    },
+    {
+      "file": "data/raw/nvd_feeds/nvdcve-2.0-2024.json.gz",
+      "bytes": 25175457,
+      "sha256": "c565a2554a6ed18888e58d4094f015f50558352b10813542d812f64838cb2071"
+    },
+    {
+      "file": "data/raw/nvd_feeds/nvdcve-2.0-2025.json.gz",
+      "bytes": 25911888,
+      "sha256": "1de2a02bf91b14ad3171221fdd81af4413ebc2aca24f713c0a45a52cc7b72460"
+    },
+    {
+      "file": "data/raw/nvd_feeds/nvdcve-2.0-2026.json.gz",
+      "bytes": 47108155,
+      "sha256": "b263b61159ea1f244c0127d3e365f32780ac4272f02c732cfc3e71be85969da1"
+    },
+    {
+      "file": "data/raw/vulhub_environments.toml",
+      "bytes": 81209,
+      "sha256": "3f0cc28b7a9fcd6f5bfc6a6a03896c2c5a293127f1245198e0161774491af791"
+    },
+    {
+      "file": "data/raw/metasploit_metadata.json",
+      "bytes": 11428469,
+      "sha256": "ca3c54f14eabc94dd5201d552558b1b2f0d2a046cea6706161638baf452f0abf"
+    },
+    {
+      "file": "data/raw/exploitdb.csv",
+      "bytes": 10184817,
+      "sha256": "9368e817ff85a87920c4a0dfd3fd5b64932b3e28c1cdae7e67acb4bfe44b19c5"
+    },
+    {
+      "file": "data/raw/falco_rules.yaml",
+      "bytes": 64538,
+      "sha256": "30a1a60263ab97650c851011468da03b17fc0096a7cfa3b6686eba5de73b865b"
+    },
+    {
+      "file": "data/raw/falco-incubating_rules.yaml",
+      "bytes": 70793,
+      "sha256": "b384d16416ff610ca5672151e078fc62e7ea8d79f58d9851215a9d3d99e2e3b6"
+    },
+    {
+      "file": "data/raw/falco-sandbox_rules.yaml",
+      "bytes": 100034,
+      "sha256": "f05ad34f07c43930932ea6dd84c08a37bc8e5ba9f88901ca091ff1b52b3f33d3"
+    },
+    {
+      "file": "data/raw/poc_nomi_sec.zip",
+      "bytes": 12295221,
+      "sha256": "c69e6a9c9f890b34fa057b1fdd41872fab1fddcbdb50f988c2366458f46c4ec6"
+    },
+    {
+      "file": "data/raw/poc_trickest.zip",
+      "bytes": 129571951,
+      "sha256": "45ce3f25524dbebde6248ba9299c1040d4e4f4b969668924b16248a004e22ed3"
+    }
+  ],
+  "limitations": [
+    "NVD feed annuali per anno ID",
+    "CPE e kernel euristici; recupero provvisorio",
+    "Compatibilità documentale, non testata",
+    "PoC indicizzati con indizio esplicito: falsi positivi e falsi negativi possibili",
+    "Bonus non dimostra indipendenza",
+    "Pesi e soglia empirici",
+    "Nessun log o test Falco; regole pubbliche non equivalgono a rilevabilità",
+    "Possibile sovrarappresentazione delle CVE applicative ben documentate"
+  ]
+}
