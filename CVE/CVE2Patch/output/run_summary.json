@@ -1,7 +1,7 @@
 {
-  "method_version": "4.0",
-  "code_revision": "4.1-refactor",
-  "run_utc": "2026-11-19T11:31:21.804659+00:00",
+  "method_version": "4.2",
+  "code_revision": "4.4-simple-single-cve",
+  "run_utc": "2026-11-23T11:26:13.074594+00:00",
   "score_max_theoretical": 100,
   "min_score": 60,
   "ranking_tiebreak": [
@@ -15,6 +15,16 @@
     "https://www.usenix.org/conference/usenixsecurity18/presentation/mu",
     "arXiv:2509.01835v2"
   ],
+  "detection_rule_policy": {
+    "max_points": 20,
+    "aggregation": "OR, non cumulativo",
+    "sources": [
+      "Falco syscall",
+      "SigmaHQ Linux/generic",
+      "Elastic Linux"
+    ],
+    "evidence": "Sigma: tag/titolo/percorso; Elastic: nome/tag/descrizione; esclusi deprecated e multi-CVE; non validazione operativa"
+  },
   "start_date": "2019-01-01",
   "end_date": "2026-11-17",
   "attack_vectors": [
@@ -22,6 +32,8 @@
     "LOCAL"
   ],
   "kernel_separate": true,
+  "exclude_multicve_vulhub": true,
+  "exclude_complex_chain_candidates": true,
   "weights": {
     "vulhub": 30,
     "msf_min": 30,
@@ -31,7 +43,7 @@
     "poc_primary": 20,
     "edb_bonus": 5,
     "poc_bonus": 5,
-    "falco": 20
+    "detection_rules": 20
   },
   "poc_indexes": {
     "nomi-sec": {
@@ -56,49 +68,59 @@
     "kernel": 19482,
     "av_non_kernel": 260105,
     "nvd_linux": 10835,
-    "recovered": 603,
-    "pending": 231319,
-    "conflicts": 1,
-    "enriched": 11438,
-    "positive_score": 998,
-    "pool": 91,
-    "pool_network": 86,
-    "pool_local": 5,
-    "pool_external_provisional": 69
+    "recovered": 601,
+    "pending": 231321,
+    "conflicts": 2,
+    "enriched": 11431,
+    "positive_score": 994,
+    "pool": 109,
+    "pool_network": 100,
+    "pool_local": 9,
+    "pool_external_provisional": 84,
+    "pool_with_detection_rule": 33,
+    "pool_falco": 4,
+    "excluded_complex_candidates": 5,
+    "excluded_multicve_vulhub_associations": 12,
+    "pool_sigma": 25,
+    "pool_elastic": 8
   },
   "coverage": {
     "candidate": {
-      "has_vulhub": 176,
-      "msf_compatible": 544,
+      "has_vulhub": 169,
+      "msf_compatible": 542,
       "edb_compatible": 288,
-      "has_poc_reference": 578,
-      "falco_syscall": 4
+      "has_poc_reference": 576,
+      "falco_syscall": 4,
+      "sigma_eligible": 29,
+      "elastic_eligible": 10
     },
     "pool": {
       "has_vulhub": 89,
-      "msf_compatible": 73,
-      "edb_compatible": 55,
-      "has_poc_reference": 83,
-      "falco_syscall": 4
+      "msf_compatible": 89,
+      "edb_compatible": 62,
+      "has_poc_reference": 97,
+      "falco_syscall": 4,
+      "sigma_eligible": 25,
+      "elastic_eligible": 8
     }
   },
   "thresholds": [
     {
       "threshold": 0,
-      "total": 11438,
-      "network": 8708,
+      "total": 11431,
+      "network": 8701,
       "local": 2730
     },
     {
       "threshold": 20,
-      "total": 998,
-      "network": 873,
+      "total": 994,
+      "network": 869,
       "local": 125
     },
     {
       "threshold": 30,
-      "total": 714,
-      "network": 657,
+      "total": 708,
+      "network": 651,
       "local": 57
     },
     {
@@ -109,38 +131,38 @@
     },
     {
       "threshold": 50,
-      "total": 190,
-      "network": 180,
-      "local": 10
+      "total": 205,
+      "network": 192,
+      "local": 13
     },
     {
       "threshold": 60,
-      "total": 91,
-      "network": 86,
-      "local": 5
+      "total": 109,
+      "network": 100,
+      "local": 9
     },
     {
       "threshold": 70,
-      "total": 69,
-      "network": 66,
-      "local": 3
+      "total": 73,
+      "network": 69,
+      "local": 4
     },
     {
       "threshold": 80,
-      "total": 29,
-      "network": 28,
+      "total": 32,
+      "network": 31,
       "local": 1
     },
     {
       "threshold": 90,
-      "total": 2,
-      "network": 1,
+      "total": 9,
+      "network": 8,
       "local": 1
     },
     {
       "threshold": 100,
-      "total": 2,
-      "network": 1,
+      "total": 8,
+      "network": 7,
       "local": 1
     }
   ],
@@ -216,6 +238,16 @@
       "sha256": "f05ad34f07c43930932ea6dd84c08a37bc8e5ba9f88901ca091ff1b52b3f33d3"
     },
     {
+      "file": "data/raw/sigma_master.zip",
+      "bytes": 12735898,
+      "sha256": "15897fa7aff36ea38cc7cf2c1d9d31d6ab233cc6263570d87cfa7eac92876914"
+    },
+    {
+      "file": "data/raw/elastic_main.zip",
+      "bytes": 70140209,
+      "sha256": "f7182328808ada297da921a0b74c023e307ccf73098e756b0c60e7821093c97a"
+    },
+    {
       "file": "data/raw/poc_nomi_sec.zip",
       "bytes": 12295221,
       "sha256": "c69e6a9c9f890b34fa057b1fdd41872fab1fddcbdb50f988c2366458f46c4ec6"
@@ -227,13 +259,16 @@
     }
   ],
   "limitations": [
+    "Esclusione catene in Vulhub basata su più CVE nella voce environments.toml: non intercetta tutte le catene implicite in altre fonti",
+    "Matching Sigma/Elastic conservativo (possibili falsi negativi)",
     "NVD feed annuali per anno ID",
     "CPE e kernel euristici; recupero provvisorio",
     "Compatibilità documentale, non testata",
     "PoC indicizzati con indizio esplicito: falsi positivi e falsi negativi possibili",
     "Bonus non dimostra indipendenza",
     "Pesi e soglia empirici",
-    "Nessun log o test Falco; regole pubbliche non equivalgono a rilevabilità",
+    "Nessun replay o test di detection; presenza di regola pubblica non equivale a rilevabilità",
+    "Sigma generic senza vincoli OS: compatibilità Linux da verificare",
     "Possibile sovrarappresentazione delle CVE applicative ben documentate"
   ]
 }
