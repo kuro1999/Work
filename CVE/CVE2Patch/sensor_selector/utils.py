@@ -10,8 +10,7 @@ import re
 from pathlib import Path
 from urllib.parse import urlsplit
 
-VERSION = "1.4.0"
-USER_AGENT = "CVE2Patch-Sensor-Selector/1.4.0 (academic observability analysis)"
+USER_AGENT = "CVE2Patch-Sensor-Selector (academic observability analysis)"
 MAX_BYTES = 4 * 1024 * 1024
 POC_MAX_BYTES = 200_000
 POC_API_BUDGET_DEFAULT = 45

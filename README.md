@@ -1,4 +1,4 @@
-# CVE2Patch — Sensor Selector v1.4 (codice modulare)
+# CVE2Patch — Sensor Selector (Falco + Elastic + Tetragon)
 
 Questo progetto **non crea regole di detection** e **non esegue exploit**. Analizza documenti e regole gia' associati alle CVE per formulare un'ipotesi di **osservabile host** e del **sensore che potrebbe raccoglierlo**.
 
@@ -6,12 +6,12 @@ Questo progetto **non crea regole di detection** e **non esegue exploit**. Anali
 
 ## 1. Dove mettere i file
 
-Consigliato: copia questi file **dentro il repository `CVE2Patch`**, accanto al notebook originale. Non devi cancellare o modificare `cve.ipynb`, `initial_pool.csv` o gli output precedenti.
+Consigliato: copia questi file **dentro il repository `CVE2Patch`**, accanto al notebook originale. Il dataset `output/initial_pool.csv` deve essere gia' presente oppure passato con `--input`. Non devi cancellare o modificare `cve.ipynb` o `initial_pool.csv`. Gli output sono rigenerati a ogni esecuzione.
 
 ```text
 CVE2Patch/
 ├── cve.ipynb                          # Notebook originale: costruisce il dataset
-├── cve2patch_sensor_selector.py        # UNICO file da eseguire
+├── cve2patch_sensor_selector.py       # File da eseguire
 ├── sensor_selector/
 │   ├── __init__.py
 │   ├── __main__.py
@@ -21,20 +21,18 @@ CVE2Patch/
 │   ├── vulhub.py
 │   ├── poc.py
 │   ├── selection.py
+│   ├── tetragon.py                 # Mappatura delle capacita' Tetragon
 │   ├── presentation.py
 │   └── cli.py
-├── tests/
-│   └── test_selector.py
-├── README_SENSOR_SELECTOR.md          # Questa guida (non sovrascrive README.md)
+├── README_SENSOR_SELECTOR.md         # Questa guida (non sovrascrive README.md)
 ├── requirements-sensor-selector.txt
 └── output/
     ├── initial_pool.csv               # Input consolidato: NON modificato
-    ├── sensor_matrix_v1_4.csv          # Risultato principale: SOLO 9 colonne
-    ├── sensor_summary_v1_4.json       # Riepilogo tecnico
-    ├── sensor_dettagli_v1_4/           # Debug e provenienza; facoltativo
-    ├── sensor_rule_cache/             # Riutilizzata dalle versioni precedenti
-    ├── sensor_vulhub_cache/           # Riutilizzata dalle versioni precedenti
-    └── sensor_poc_cache/              # Riutilizzata dalle versioni precedenti
+    ├── sensor_matrix.csv               # Risultato principale: 9 colonne
+    ├── sensor_dettagli/                # Dettagli tecnici e provenienza
+    ├── sensor_rule_cache/              # Cache delle regole
+    ├── sensor_vulhub_cache/            # Cache dei README
+    └── sensor_poc_cache/               # Cache dei PoC
 ```
 
 Se preferisci tenere lo script nella cartella **`CVE`**, come prima, copia nella stessa cartella sia `cve2patch_sensor_selector.py` sia `sensor_selector/`: il programma cerca anche `CVE2Patch/output/initial_pool.csv`.
@@ -48,7 +46,7 @@ python -m pip install -r .\requirements-sensor-selector.txt
 python .\cve2patch_sensor_selector.py --offline
 ```
 
-`--offline` e' il modo migliore per **il primo confronto**: riutilizza le cache gia' scaricate, non fa richieste internet e permette di confrontare la v1.4 con la v1.3. Se mancano file in cache, saranno marcati come non disponibili, non come assenza di sensori.
+`--offline` riutilizza le cache gia' scaricate e non fa richieste Internet. Se mancano file in cache, saranno marcati come non disponibili, non come assenza di sensori.
 
 Se devi recuperare soltanto i file mancanti, in una seconda esecuzione:
 
@@ -62,10 +60,9 @@ python .\cve2patch_sensor_selector.py
 python .\cve2patch_sensor_selector.py --help
 python .\cve2patch_sensor_selector.py --offline --skip-poc
 python .\cve2patch_sensor_selector.py --offline --include-sigma
-python -m unittest discover -s tests -v
 ```
 
-`--include-sigma` serve solo come esperimento facoltativo: **Sigma rimane sospeso per default**, come deciso. Tracee e Tetragon non partecipano all'algoritmo.
+`--include-sigma` serve solo come esperimento facoltativo: **Sigma rimane sospeso per default**, come deciso. Tracee resta escluso. Tetragon partecipa solo come sensore candidato, senza generare TracingPolicy.
 
 ## 3. La pipeline in parole semplici
 
@@ -83,8 +80,10 @@ initial_pool.csv (109 CVE, NVD e link esistenti)
             |
 [5] presentation.py→ riduce tutto a una matrice leggibile di 9 colonne
             |
+[6] tetragon.py    → aggiunge Tetragon solo a osservabili gia' individuati
+            |
             v
-sensor_matrix_v1_4.csv
+sensor_matrix.csv
 ```
 
 Il programma **non seleziona Falco perche' trova una regola Falco**: prima individua l'evento, poi ragiona sulle capacita' dei sensori. Se non possiede evidenze adeguate, non forza una scelta.
@@ -101,8 +100,8 @@ Il programma **non seleziona Falco perche' trova una regola Falco**: prima indiv
 | `sensor_selector/vulhub.py` | Identifica le sezioni di exploit dei README ed estrae indizi espliciti | `attack_sections`, `parse_vulhub_readme` |
 | `sensor_selector/poc.py` | Legge staticamente pochi file PoC, senza eseguirli | `poc_attack_payload_evidence`, `analyze_poc_file` |
 | `sensor_selector/selection.py` | Combina le evidenze e decide quando proporre o NON proporre un sensore | `aggregate_cve`, `integrate_vulhub` |
+| `sensor_selector/tetragon.py` | Mappa eventi gia' documentati su capacita' Tetragon default/TracingPolicy senza cambiare lo stato | `capability_labels`, `add_tetragon_to_row` |
 | `sensor_selector/presentation.py` | Converte i dati tecnici nella matrice minimale | `simple_row`, `neutral_required_fields` |
-| `tests/test_selector.py` | Test automatici senza accesso a Internet | Test parser, catene, sensori e matrice |
 
 ### Cosa significa esattamente *parser*?
 
@@ -128,12 +127,36 @@ La presenza di *due richieste HTTP* in un PoC non basta per parlare di chain mul
 
 1. **Comportamento chiaro dal documento?** Per esempio l'avvio di un processo esterno.
 2. **Evento host plausibile?** Per esempio esecuzione di un processo (`execve` / `execveat`).
-3. **Sensore compatibile?** Falco Modern eBPF e, dove pertinente, Elastic Defend possono osservare questa famiglia di eventi.
+3. **Sensore compatibile?** Falco Modern eBPF, Elastic Defend e Tetragon, con i prerequisiti di raccolta specifici, possono osservare le famiglie di eventi pertinenti.
 4. **Evidenza specifica insufficiente?** Non selezionare automaticamente un sensore.
 
 Le informazioni NVD nel CSV (descrizione, CWE, riferimenti) sono contesto; ad esempio la dicitura *Remote Code Execution* **non implica sempre** che venga eseguita la syscall `execve`.
 
-**Nota:** non abbiamo un confronto sperimentale di copertura tra Falco ed Elastic. Il risultato e' una proposta **documentale**, non una prova di detection o di prevenzione.
+**Nota:** non abbiamo un confronto sperimentale di copertura tra Falco, Elastic e Tetragon. Il risultato e' una proposta **documentale**, non una prova di detection o di prevenzione.
+
+## 5-bis. Tetragon: solo le tre modifiche richieste
+
+**Non abbiamo modificato parser, dataset o criteri di evidenza.** `tetragon.py` viene richiamato dopo l'analisi PoC e aggiunge, ove giustificato, Tetragon nella stessa colonna `sensore_candidato`.
+
+| Famiglia dell'evento gia' documentato | Tetragon | Requisito |
+|---|---|---|
+| `process_execution` | `process_exec` | Di default nella configurazione base |
+| `file_access` / `file_activity` | Tracciamento file | Richiede una `TracingPolicy` specifica |
+| `network_activity` | Tracciamento rete | Richiede una `TracingPolicy` specifica |
+| `process_activity` generica / `buffer_content` / sola descrizione NVD | Nessuna aggiunta automatica | Evento non sufficientemente specifico per la nostra mappatura conservativa |
+
+Esempi del contenuto della **stessa colonna**:
+- `Falco (Modern eBPF); Elastic Defend; Tetragon (process_exec default)`
+- `Falco (Modern eBPF); Tetragon (file: TracingPolicy richiesta)` — ancora `da_verificare` se il file compare solo nel payload
+
+Se un caso combina processo e file, Tetragon riporta entrambe le modalita'. **Non viene creata, installata o testata alcuna TracingPolicy**. La compatibilita' e' una proposta documentale; una policy configurata male o un kernel non compatibile possono impedire la raccolta.
+
+Il numero delle CVE `candidato`, `da_verificare`, `solo_ipotesi`, `evidenza_insufficiente` **non cambia a causa di Tetragon**. La logica scarta ancora i PoC multi-CVE; Sigma resta sospeso.
+
+Fonti ufficiali:
+- https://tetragon.io/docs/use-cases/process-lifecycle/
+- https://tetragon.io/docs/concepts/tracing-policy/
+- https://tetragon.io/docs/use-cases/
 
 ## 6. La matrice finale: SEMPRE nove colonne
 
@@ -143,13 +166,13 @@ Le informazioni NVD nel CSV (descrizione, CWE, riferimenti) sono contesto; ad es
 | `comportamento` | Comportamento dedotto dalle fonti |
 | `osservabile_evento` | Evento host osservabile, quando identificato |
 | `campi_necessari` | Nomi semantici, non sintassi di un prodotto |
-| `sensore_candidato` | Falco / Elastic Defend, solo se giustificato |
+| `sensore_candidato` | Falco / Elastic Defend / Tetragon, solo se giustificato; il requisito di TracingPolicy compare qui |
 | `fonte` | Documento che motiva l'ipotesi |
 | `link_fonte` | URL dell'evidenza |
 | `stato` | Candidato, da verificare, solo ipotesi o insufficiente |
 | `nota` | Una breve limitazione concreta |
 
-Gli output intermedi (`sensor_rules_*.csv`, `sensor_vulhub_*.csv`, `sensor_poc_*.csv`) restano nella sottocartella `sensor_dettagli_v1_4`, **non vanno consultati quotidianamente**: servono solo a ricostruire una selezione dubbia.
+Gli output intermedi (`sensor_rules.csv`, `sensor_vulhub.csv`, `sensor_poc.csv`) restano nella sottocartella `sensor_dettagli`, **non vanno consultati quotidianamente**: servono solo a ricostruire una selezione dubbia.
 
 ### Come interpretare `stato`
 
@@ -158,33 +181,21 @@ Gli output intermedi (`sensor_rules_*.csv`, `sensor_vulhub_*.csv`, `sensor_poc_*
 - **`solo_ipotesi`**: la descrizione fornisce una categoria generica, senza evento host concreto.
 - **`evidenza_insufficiente`**: le fonti esaminate non permettono una selezione motivata; **non significa “CVE impossibile da rilevare”**.
 
-## 7. Cosa e' stato modificato rispetto alla v1.3?
+## 7. Supporto Tetragon
 
-**Refactoring, non un nuovo algoritmo.** La maggior parte della logica originale e' invariata. Sono state fatte correzioni limitate:
+Il modulo `tetragon.py` distingue gli eventi osservabili di default da quelli che richiedono una `TracingPolicy`. `cli.py` applica questa mappatura ai risultati senza promuovere lo stato di evidenza delle CVE.
 
-- 1.605 righe in un unico script → moduli separati per responsabilita'.
-- La versione JSON indica correttamente `1.4.0` (prima lo script v1.3 riportava ancora `1.2.3`).
-- I PoC che dichiarano una catena multi-CVE vengono esclusi come fonte.
-- L'analisi con `ast.parse()` non mostra piu' gli avvisi `SyntaxWarning` dovuti a stringhe di terzi con backslash non escapati.
-- I nomi di file di output sono `v1_4`, per non sovrascrivere la v1.3.
-- Se specifichi `--output`, i dettagli e il riepilogo di default vengono salvati accanto alla nuova matrice.
-- La matrice rimane di **109 righe e 9 colonne** se usi il pool consolidato.
+La selezione mantiene nove colonne; Sigma resta facoltativo e i PoC multi-CVE espliciti non contribuiscono alle evidenze.
 
-## 8. Verifiche effettuate e limiti
+## 8. Riproducibilita' e limiti
 
-Eseguibili con:
+Per ottenere risultati confrontabili tra macchine bisogna usare lo stesso dataset e le stesse fonti in cache. Con `--offline`, i riferimenti non presenti nella cache vengono trattati come non disponibili. I file di dettaglio contengono gli estratti delle fonti e i relativi hash, utili per la tracciabilita'.
 
-```powershell
-python -m unittest discover -s tests -v
-```
+I file sotto `output/sensor_*_cache/` possono essere esclusi dal repository, ma per riprodurre esattamente le fonti usate devi conservarne uno snapshot: i branch GitHub `main/master` possono cambiare.
 
-I test controllano la lettura delle regole Falco/Elastic, le evidenze README, i PoC con payload, i comandi locali che NON giustificano un sensore, le catene multi-CVE e la matrice minimal.
+**Il programma non genera un report di esecuzione JSON:** produce `sensor_matrix.csv` e, separatamente, i CSV di dettaglio per ispezionare le evidenze. Non esegue exploit e non valida sperimentalmente i sensori.
 
-**Importante:** la cache completa di GitHub/Vulhub e' attualmente sul tuo PC. Qui il refactoring e' stato verificato con test senza rete e con il dataset CSV delle 109 CVE. Il confronto esatto dei conteggi della v1.4 con la tua v1.3 va fatto **in locale, con la stessa cache**, usando `--offline`: eventuali differenze sono attese solo dove erano usate evidenze di chain multi-CVE.
-
-I file sotto `output/sensor_*_cache/` sono ignorabili da Git, ma **per riprodurre esattamente le fonti usate** devi conservare una copia della cache o il corrispondente snapshot dei contenuti: i branch GitHub `main/master` possono cambiare. Il riepilogo registra l'hash del dataset e i dettagli contengono gli hash delle fonti acquisite.
-
-## 9. Non versionare cache e segreti
+## 9. File da escludere dal repository
 
 Se il repository ha gia' un `.gitignore`, **aggiungi** soltanto queste righe:
 
